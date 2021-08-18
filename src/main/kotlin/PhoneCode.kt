@@ -1,4 +1,6 @@
 import java.io.InputStream
+import java.util.*
+import kotlin.collections.HashMap
 
 typealias WordSequence = List<Words>
 typealias Words = List<String>
@@ -143,7 +145,7 @@ class PhoneCode {
 
 
         dictionary.forEach { word ->
-            val key = word.toCharArray().map {
+            val key = word.lowercase(Locale.getDefault()).toCharArray().map {
                 characterMapping[it]
             }.joinToString("")
             if (dictionaryEncodings[key] != null) {
