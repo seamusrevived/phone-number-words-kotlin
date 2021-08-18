@@ -1,45 +1,38 @@
 import java.io.InputStream
 
 class PhoneCode {
-    private var dictionary: List<String> = emptyList()
     private val dictionaryMap: HashMap<String, MutableList<String>> = hashMapOf()
 
 
     fun findEncodings(phoneNumber: String): List<String> {
+        val foundSequences = mutableListOf<List<List<String>>>()
+        buildWordSequence(phoneNumber, foundSequences)
 
-
-        val wordsSequence = mutableListOf<List<List<String>>>()
-        for (i in 1..phoneNumber.length) {
-            val thisSequence = mutableListOf<List<String>>()
-            val firstNumberSequence = phoneNumber.subSequence(0, i)
-            val match = dictionaryMap[firstNumberSequence]
-            if (match != null) {
-                thisSequence.add(match)
-                buildWordSequence(phoneNumber.subSequence(i, phoneNumber.length), thisSequence)
-            }
-            wordsSequence.add(thisSequence)
-        }
-
-        return wordsSequence.map {
-            findAllSequenceCombinations(it)
-                .map {
-                    it.joinToString(" ")
+        return foundSequences.map { sequence ->
+            findAllCombinationsForSequence(sequence)
+                .map { words ->
+                    words.joinToString(" ")
                 }.filter(String::isNotBlank)
-        }.flatten()
+        }.flatten().distinct()
     }
 
-    private fun buildWordSequence(phoneNumber: CharSequence, thisSequence: MutableList<List<String>>) {
+    private fun buildWordSequence(
+        phoneNumber: CharSequence,
+        foundSequences: MutableList<List<List<String>>>,
+        runningSequence: MutableList<List<String>> = mutableListOf()
+    ) {
         for (i in 1..phoneNumber.length) {
             val firstNumberSequence = phoneNumber.subSequence(0, i)
             val match = dictionaryMap[firstNumberSequence]
             if (match != null) {
-                thisSequence.add(match)
-                buildWordSequence(phoneNumber.subSequence(i, phoneNumber.length), thisSequence)
+                runningSequence.add(match)
+                buildWordSequence(phoneNumber.subSequence(i, phoneNumber.length), foundSequences, runningSequence)
+                foundSequences.add(runningSequence)
             }
         }
     }
 
-    private fun findAllSequenceCombinations(
+    private fun findAllCombinationsForSequence(
         wordsSequence: List<List<String>>
     ): List<List<String>> {
         var sequenceCombinations = listOf(emptyList<String>())
@@ -82,7 +75,7 @@ class PhoneCode {
     }
 
     fun setDictionary(inputStream: InputStream) {
-        dictionary = inputStream.readAllBytes()
+        val dictionary = inputStream.readAllBytes()
             .decodeToString()
             .split('\n')
             .filter(String::isNotBlank)
