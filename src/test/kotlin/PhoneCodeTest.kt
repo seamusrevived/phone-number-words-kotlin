@@ -170,7 +170,7 @@ class PhoneCodeTest {
     }
 
     @Test
-    fun `Phone number 23456789 with with dictionary of adgjmptw returns empty word adgjmptw`() {
+    fun `Phone number 23456789 with with dictionary of adgjmptw returns words adgjmptw`() {
         val phoneCode = PhoneCode()
 
         val inputStream = ByteArrayInputStream("adgjmptw".toByteArray())
@@ -183,7 +183,7 @@ class PhoneCodeTest {
     }
 
     @Test
-    fun `Phone number 23456789 with with dictionary of behknqux returns empty word behknqux`() {
+    fun `Phone number 23456789 with with dictionary of behknqux returns words behknqux`() {
         val phoneCode = PhoneCode()
 
         val inputStream = ByteArrayInputStream("behknqux".toByteArray())
@@ -196,7 +196,7 @@ class PhoneCodeTest {
     }
 
     @Test
-    fun `Phone number 23456789 with with dictionary of cfilorvy returns empty word cfilorvy`() {
+    fun `Phone number 23456789 with with dictionary of cfilorvy returns words cfilorvy`() {
         val phoneCode = PhoneCode()
 
         val inputStream = ByteArrayInputStream("cfilorvy".toByteArray())
@@ -209,7 +209,7 @@ class PhoneCodeTest {
     }
 
     @Test
-    fun `Phone number 79 with with dictionary of sz returns empty word sz`() {
+    fun `Phone number 79 with with dictionary of sz returns words sz`() {
         val phoneCode = PhoneCode()
 
         val inputStream = ByteArrayInputStream("sz".toByteArray())
@@ -222,7 +222,7 @@ class PhoneCodeTest {
     }
 
     @Test
-    fun `Phone number 2 with with dictionary of A returns empty word A`() {
+    fun `Phone number 2 with with dictionary of A returns words A`() {
         val phoneCode = PhoneCode()
 
         val inputStream = ByteArrayInputStream("A".toByteArray())
@@ -232,5 +232,18 @@ class PhoneCodeTest {
         val encodings = phoneCode.findEncodings("2")
 
         assertEquals(listOf("A"), encodings)
+    }
+
+    @Test
+    fun `Phone number 2-() 3 with with dictionary of ad returns words ad`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("ad".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("2-() 3")
+
+        assertEquals(listOf("ad"), encodings)
     }
 }

@@ -12,12 +12,19 @@ class PhoneCode {
     private val dictionaryEncodings: HashMap<String, MutableList<String>> = hashMapOf()
 
     fun findEncodings(phoneNumber: String): List<String> {
-        val foundSequences = buildWordSequences(phoneNumber)
+        val sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber)
+
+        val foundSequences = buildWordSequences(sanitizedPhoneNumber)
 
         return foundSequences.map {
             generateOutputStringsForSequence(it)
         }.flatten()
     }
+
+    private fun sanitizePhoneNumber(phoneNumber: String) = Regex("[0-9]")
+        .findAll(phoneNumber)
+        .map { it.value }
+        .joinToString("")
 
     private fun generateOutputStringsForSequence(sequence: WordSequence): List<String> {
         return findAllFlatCombinationsForSequence(sequence).map { flatWords ->
@@ -52,9 +59,9 @@ class PhoneCode {
         val nextRunningSequence = appendWordsToWordSequence(runningSequence, nextWordsInSequence)
 
         return buildWordSequences(
-                phoneNumber.subSequence(i, phoneNumber.length),
-                nextRunningSequence
-            )
+            phoneNumber.subSequence(i, phoneNumber.length),
+            nextRunningSequence
+        )
     }
 
     private fun appendWordsToWordSequence(
@@ -108,41 +115,42 @@ class PhoneCode {
         }
     }
 
+    private val phonePadLetterMapping: HashMap<Char, Char> = hashMapOf(
+        Pair('a', '2'),
+        Pair('b', '2'),
+        Pair('c', '2'),
+        Pair('d', '3'),
+        Pair('e', '3'),
+        Pair('f', '3'),
+        Pair('g', '4'),
+        Pair('h', '4'),
+        Pair('i', '4'),
+        Pair('j', '5'),
+        Pair('k', '5'),
+        Pair('l', '5'),
+        Pair('m', '6'),
+        Pair('n', '6'),
+        Pair('o', '6'),
+        Pair('p', '7'),
+        Pair('q', '7'),
+        Pair('r', '7'),
+        Pair('s', '7'),
+        Pair('t', '8'),
+        Pair('u', '8'),
+        Pair('v', '8'),
+        Pair('w', '9'),
+        Pair('x', '9'),
+        Pair('y', '9'),
+        Pair('z', '9'),
+    )
+
     fun setDictionary(inputStream: InputStream) {
         val dictionary = inputStream.readAllBytes()
             .decodeToString()
             .split('\n')
             .filter(String::isNotBlank)
 
-        val characterMapping = hashMapOf(
-            Pair('a', '2'),
-            Pair('b', '2'),
-            Pair('c', '2'),
-            Pair('d', '3'),
-            Pair('e', '3'),
-            Pair('f', '3'),
-            Pair('g', '4'),
-            Pair('h', '4'),
-            Pair('i', '4'),
-            Pair('j', '5'),
-            Pair('k', '5'),
-            Pair('l', '5'),
-            Pair('m', '6'),
-            Pair('n', '6'),
-            Pair('o', '6'),
-            Pair('p', '7'),
-            Pair('q', '7'),
-            Pair('r', '7'),
-            Pair('s', '7'),
-            Pair('t', '8'),
-            Pair('u', '8'),
-            Pair('v', '8'),
-            Pair('w', '9'),
-            Pair('x', '9'),
-            Pair('y', '9'),
-            Pair('z', '9'),
-        )
-
+        val characterMapping = phonePadLetterMapping
 
         dictionary.forEach { word ->
             val key = word.lowercase(Locale.getDefault()).toCharArray().map {
