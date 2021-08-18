@@ -13,7 +13,7 @@ Library to find dial-pad words in phone numbers in the spirit of Prechelt's "pho
 
 ### Example
 
-A dictionary file containing lines `hello` and `world` with a phone number
+A dictionary file containing lines `hello` and `world` run with a phone number
 `(435) 569-6753` will return a list with `"hello world"`
 
 ## Description
