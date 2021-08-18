@@ -2,10 +2,10 @@ import java.io.InputStream
 import java.util.*
 import kotlin.collections.HashMap
 
-typealias WordSequence = List<Words>
-typealias Words = List<String>
-typealias FlatSequence = List<String>
-typealias MutableWordSequence = MutableList<Words>
+typealias PartitioningSequence = List<PartitionWords>
+typealias PartitionWords = List<String>
+typealias FlatWordSequence = List<String>
+typealias MutablePartitioningSequence = MutableList<PartitionWords>
 
 
 class PhoneCode {
@@ -13,11 +13,11 @@ class PhoneCode {
 
     fun setDictionary(inputStream: InputStream) {
         getDictionaryFileLines(inputStream).forEach { word ->
-            addNumberEncodingAndWordToDictionaryEncodings(word.trimEnd())
+            addNumberEncodedWordToDictionaryEncodings(word.trimEnd())
         }
     }
 
-    private fun addNumberEncodingAndWordToDictionaryEncodings(word: String) {
+    private fun addNumberEncodedWordToDictionaryEncodings(word: String) {
         val key = getNumberEncodingForWord(word)
 
         if (dictionaryEncodings.containsKey(key)) {
@@ -30,79 +30,85 @@ class PhoneCode {
     fun findEncodings(phoneNumber: String): List<String> {
         val sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber)
 
-        val foundSequences = buildWordSequences(sanitizedPhoneNumber)
+        val foundPartitionings = buildWordPartitionings(sanitizedPhoneNumber)
 
-        return foundSequences.map {
-            generateOutputStringsForSequence(it)
+        return foundPartitionings.map { partitioning ->
+            generateOutputStringsForPartitioning(partitioning)
         }.flatten()
     }
 
-    private fun buildWordSequences(
+    private fun buildWordPartitionings(
         phoneNumber: CharSequence,
-        runningSequence: MutableWordSequence = mutableListOf()
-    ): List<WordSequence> {
+        runningSequence: MutablePartitioningSequence = mutableListOf()
+    ): List<PartitioningSequence> {
         if (phoneNumber.isEmpty()) {
             return listOf(runningSequence)
         }
 
         return (1..phoneNumber.length).mapNotNull { i ->
-            findSequencesWithStartingWordLength(i, phoneNumber, runningSequence)
+            val headNumbers = phoneNumber.subSequence(0, i)
+            val tailNumbers = phoneNumber.subSequence(i, phoneNumber.length)
+
+            findWordsPartitionedBy(
+                headNumbers,
+                tailNumbers,
+                runningSequence
+            )
         }.flatten()
     }
 
-    private fun generateOutputStringsForSequence(sequence: WordSequence): List<String> {
-        return findAllFlatCombinationsForSequence(sequence).map { flatWords ->
-            flatWords.joinToString(" ")
-        }.filter(String::isNotBlank)
-    }
-
-    private fun findSequencesWithStartingWordLength(
-        i: Int,
-        phoneNumber: CharSequence,
-        runningSequence: MutableWordSequence
-    ): List<WordSequence>? {
-        val firstNumberSequence = phoneNumber.subSequence(0, i)
-        if (!dictionaryEncodings.containsKey(firstNumberSequence)) {
+    private fun findWordsPartitionedBy(
+        headNumbers: CharSequence,
+        tailNumbers: CharSequence,
+        runningSequence: MutablePartitioningSequence
+    ): List<PartitioningSequence>? {
+        if (!dictionaryEncodings.containsKey(headNumbers)) {
             return null
         }
 
-        val nextWordsInSequence = dictionaryEncodings[firstNumberSequence]!!
+        val nextWordsInSequence = dictionaryEncodings[headNumbers]!!
         val nextRunningSequence = appendWordsToWordSequence(runningSequence, nextWordsInSequence)
 
-        return buildWordSequences(
-            phoneNumber.subSequence(i, phoneNumber.length),
+        return buildWordPartitionings(
+            tailNumbers,
             nextRunningSequence
         )
     }
 
-    private fun findAllFlatCombinationsForSequence(
-        wordsSequence: WordSequence
-    ): List<FlatSequence> {
-        var sequenceCombinations = listOf(emptyFlatSequence())
-
-        wordsSequence.forEach { wordsForPosition ->
-            val newCombinations = appendAllFlatCombinationsWithWords(
-                wordsForPosition,
-                sequenceCombinations
-            )
-            sequenceCombinations = newCombinations
-        }
-        return sequenceCombinations
+    private fun generateOutputStringsForPartitioning(sequence: PartitioningSequence): List<String> {
+        return findAllFlatCombinationsForPartitioning(sequence).map { flatWords ->
+            flatWords.joinToString(" ")
+        }.filter(String::isNotBlank)
     }
 
-    private fun appendAllFlatCombinationsWithWords(
-        wordsForPosition: Words,
-        existingCombinations: List<FlatSequence>
-    ): List<FlatSequence> {
-        val newCombinations = mutableListOf<FlatSequence>()
-        wordsForPosition.forEach { word ->
-            appendWordToEachFlatSequence(word, existingCombinations, newCombinations)
+    private fun findAllFlatCombinationsForPartitioning(
+        partitioningSequence: PartitioningSequence
+    ): List<FlatWordSequence> {
+        var flatSequenceCombinations = listOf(emptyFlatSequence())
+
+        partitioningSequence.forEach { wordsInPartition ->
+            val newCombinations = appendAllFlatSequencesWithWords(
+                wordsInPartition,
+                flatSequenceCombinations
+            )
+            flatSequenceCombinations = newCombinations
+        }
+        return flatSequenceCombinations
+    }
+
+    private fun appendAllFlatSequencesWithWords(
+        partitionWords: PartitionWords,
+        existingFlatSequences: List<FlatWordSequence>
+    ): List<FlatWordSequence> {
+        val newCombinations = mutableListOf<FlatWordSequence>()
+        partitionWords.forEach { word ->
+            appendWordToEachFlatSequence(word, existingFlatSequences, newCombinations)
         }
         return newCombinations
     }
 
     companion object {
-        private fun emptyFlatSequence(): FlatSequence = emptyList()
+        private fun emptyFlatSequence(): FlatWordSequence = emptyList()
 
         private fun sanitizePhoneNumber(phoneNumber: String) = Regex("[0-9]")
             .findAll(phoneNumber)
@@ -123,9 +129,9 @@ class PhoneCode {
         }
 
         private fun appendWordsToWordSequence(
-            runningSequence: MutableWordSequence,
+            runningSequence: MutablePartitioningSequence,
             nextWordsInSequence: MutableList<String>
-        ): MutableList<Words> {
+        ): MutableList<PartitionWords> {
             return runningSequence.toMutableList().apply {
                 add(nextWordsInSequence)
             }
@@ -133,8 +139,8 @@ class PhoneCode {
 
         private fun appendWordToEachFlatSequence(
             word: String,
-            flatSequences: List<FlatSequence>,
-            appendedFlatSequences: MutableList<FlatSequence>
+            flatSequences: List<FlatWordSequence>,
+            appendedFlatSequences: MutableList<FlatWordSequence>
         ) {
             flatSequences.mapTo(appendedFlatSequences) { combination ->
                 appendWordToFlatSequence(combination, word)
@@ -142,7 +148,7 @@ class PhoneCode {
         }
 
         private fun appendWordToFlatSequence(
-            flatSequence: FlatSequence,
+            flatSequence: FlatWordSequence,
             word: String
         ): List<String> {
             return flatSequence.toMutableList().apply {
