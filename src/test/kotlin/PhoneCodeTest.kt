@@ -246,4 +246,17 @@ class PhoneCodeTest {
 
         assertEquals(listOf("ad"), encodings)
     }
+
+    @Test
+    fun `Phone number (435) 569-6753 with with dictionary of hello and world returns words hello world`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("hello\nworld".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("(435) 569-6753")
+
+        assertEquals(listOf("hello world"), encodings)
+    }
 }

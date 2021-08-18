@@ -11,6 +11,22 @@ typealias MutableWordSequence = MutableList<Words>
 class PhoneCode {
     private val dictionaryEncodings: HashMap<String, MutableList<String>> = hashMapOf()
 
+    fun setDictionary(inputStream: InputStream) {
+        getDictionaryFileLines(inputStream).forEach { word ->
+            addNumberEncodingAndWordToDictionaryEncodings(word)
+        }
+    }
+
+    private fun addNumberEncodingAndWordToDictionaryEncodings(word: String) {
+        val key = getNumberEncodingForWord(word)
+
+        if (dictionaryEncodings.containsKey(key)) {
+            dictionaryEncodings[key]!!.add(word)
+        } else {
+            dictionaryEncodings[key] = mutableListOf(word)
+        }
+    }
+
     fun findEncodings(phoneNumber: String): List<String> {
         val sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber)
 
@@ -19,17 +35,6 @@ class PhoneCode {
         return foundSequences.map {
             generateOutputStringsForSequence(it)
         }.flatten()
-    }
-
-    private fun sanitizePhoneNumber(phoneNumber: String) = Regex("[0-9]")
-        .findAll(phoneNumber)
-        .map { it.value }
-        .joinToString("")
-
-    private fun generateOutputStringsForSequence(sequence: WordSequence): List<String> {
-        return findAllFlatCombinationsForSequence(sequence).map { flatWords ->
-            flatWords.joinToString(" ")
-        }.filter(String::isNotBlank)
     }
 
     private fun buildWordSequences(
@@ -43,6 +48,12 @@ class PhoneCode {
         return (1..phoneNumber.length).mapNotNull { i ->
             findSequencesWithStartingWordLength(i, phoneNumber, runningSequence)
         }.flatten()
+    }
+
+    private fun generateOutputStringsForSequence(sequence: WordSequence): List<String> {
+        return findAllFlatCombinationsForSequence(sequence).map { flatWords ->
+            flatWords.joinToString(" ")
+        }.filter(String::isNotBlank)
     }
 
     private fun findSequencesWithStartingWordLength(
@@ -64,28 +75,22 @@ class PhoneCode {
         )
     }
 
-    private fun appendWordsToWordSequence(
-        runningSequence: MutableWordSequence,
-        nextWordsInSequence: MutableList<String>
-    ): MutableList<Words> {
-        return runningSequence.toMutableList().apply {
-            add(nextWordsInSequence)
-        }
-    }
-
     private fun findAllFlatCombinationsForSequence(
         wordsSequence: WordSequence
     ): List<FlatSequence> {
         var sequenceCombinations = listOf(emptyFlatSequence())
 
         wordsSequence.forEach { wordsForPosition ->
-            val newCombinations = generateAllFlatCombinationsWithWords(wordsForPosition, sequenceCombinations)
+            val newCombinations = appendAllFlatCombinationsWithWords(
+                wordsForPosition,
+                sequenceCombinations
+            )
             sequenceCombinations = newCombinations
         }
         return sequenceCombinations
     }
 
-    private fun generateAllFlatCombinationsWithWords(
+    private fun appendAllFlatCombinationsWithWords(
         wordsForPosition: Words,
         existingCombinations: List<FlatSequence>
     ): List<FlatSequence> {
@@ -96,73 +101,53 @@ class PhoneCode {
         return newCombinations
     }
 
-    private fun appendWordToEachFlatSequence(
-        word: String,
-        flatSequences: List<FlatSequence>,
-        appendedFlatSequences: MutableList<FlatSequence>
-    ) {
-        flatSequences.mapTo(appendedFlatSequences) { combination ->
-            appendWordToFlatSequence(combination, word)
-        }
-    }
+    companion object {
+        private fun emptyFlatSequence(): FlatSequence = emptyList()
 
-    private fun appendWordToFlatSequence(
-        flatSequence: FlatSequence,
-        word: String
-    ): List<String> {
-        return flatSequence.toMutableList().apply {
-            add(word)
-        }
-    }
+        private fun sanitizePhoneNumber(phoneNumber: String) = Regex("[0-9]")
+            .findAll(phoneNumber)
+            .map { it.value }
+            .joinToString("")
 
-    private val phonePadLetterMapping: HashMap<Char, Char> = hashMapOf(
-        Pair('a', '2'),
-        Pair('b', '2'),
-        Pair('c', '2'),
-        Pair('d', '3'),
-        Pair('e', '3'),
-        Pair('f', '3'),
-        Pair('g', '4'),
-        Pair('h', '4'),
-        Pair('i', '4'),
-        Pair('j', '5'),
-        Pair('k', '5'),
-        Pair('l', '5'),
-        Pair('m', '6'),
-        Pair('n', '6'),
-        Pair('o', '6'),
-        Pair('p', '7'),
-        Pair('q', '7'),
-        Pair('r', '7'),
-        Pair('s', '7'),
-        Pair('t', '8'),
-        Pair('u', '8'),
-        Pair('v', '8'),
-        Pair('w', '9'),
-        Pair('x', '9'),
-        Pair('y', '9'),
-        Pair('z', '9'),
-    )
-
-    fun setDictionary(inputStream: InputStream) {
-        val dictionary = inputStream.readAllBytes()
-            .decodeToString()
-            .split('\n')
-            .filter(String::isNotBlank)
-
-        val characterMapping = phonePadLetterMapping
-
-        dictionary.forEach { word ->
-            val key = word.lowercase(Locale.getDefault()).toCharArray().map {
-                characterMapping[it]
+        private fun getNumberEncodingForWord(word: String): String {
+            return word.lowercase(Locale.getDefault()).toCharArray().map {
+                PhoneUtil.phonePadLetterMapping[it]
             }.joinToString("")
-            if (dictionaryEncodings[key] != null) {
-                dictionaryEncodings[key]!!.add(word)
-            } else {
-                dictionaryEncodings[key] = mutableListOf(word)
+        }
+
+        private fun getDictionaryFileLines(inputStream: InputStream): List<String> {
+            return inputStream.readAllBytes()
+                .decodeToString()
+                .split('\n')
+                .filter(String::isNotBlank)
+        }
+
+        private fun appendWordsToWordSequence(
+            runningSequence: MutableWordSequence,
+            nextWordsInSequence: MutableList<String>
+        ): MutableList<Words> {
+            return runningSequence.toMutableList().apply {
+                add(nextWordsInSequence)
+            }
+        }
+
+        private fun appendWordToEachFlatSequence(
+            word: String,
+            flatSequences: List<FlatSequence>,
+            appendedFlatSequences: MutableList<FlatSequence>
+        ) {
+            flatSequences.mapTo(appendedFlatSequences) { combination ->
+                appendWordToFlatSequence(combination, word)
+            }
+        }
+
+        private fun appendWordToFlatSequence(
+            flatSequence: FlatSequence,
+            word: String
+        ): List<String> {
+            return flatSequence.toMutableList().apply {
+                add(word)
             }
         }
     }
-
-    private fun emptyFlatSequence(): FlatSequence = emptyList()
 }
