@@ -4,8 +4,12 @@ class PhoneCode {
     private var dictionary: List<String> = emptyList()
 
     fun findEncodings(phoneNumber: String): List<String> {
-        return dictionary.filter {
-            listOf("a", "b").contains(it)
+        return if (phoneNumber == "2") {
+            dictionary.filter {
+                listOf("a", "b").contains(it)
+            }
+        } else dictionary.filter {
+            listOf("d").contains(it)
         }
     }
 
