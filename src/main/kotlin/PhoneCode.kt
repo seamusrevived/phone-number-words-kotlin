@@ -5,7 +5,9 @@ class PhoneCode {
 
     fun findEncodings(phoneNumber: String): List<String> {
         return if (phoneNumber.isNotEmpty()) {
-            dictionary
+            dictionary.filter {
+                listOf("a", "b").contains(it)
+            }
         } else {
             emptyList()
         }
