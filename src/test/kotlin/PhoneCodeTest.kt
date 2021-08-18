@@ -168,4 +168,56 @@ class PhoneCodeTest {
 
         assertEquals(emptyList<String>(), encodings)
     }
+
+    @Test
+    fun `Phone number 23456789 with with dictionary of adgjmptw returns empty word adgjmptw`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("adgjmptw".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("23456789")
+
+        assertEquals(listOf("adgjmptw"), encodings)
+    }
+
+    @Test
+    fun `Phone number 23456789 with with dictionary of behknqux returns empty word behknqux`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("behknqux".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("23456789")
+
+        assertEquals(listOf("behknqux"), encodings)
+    }
+
+    @Test
+    fun `Phone number 23456789 with with dictionary of cfilorvy returns empty word cfilorvy`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("cfilorvy".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("23456789")
+
+        assertEquals(listOf("cfilorvy"), encodings)
+    }
+
+    @Test
+    fun `Phone number 79 with with dictionary of sz returns empty word sz`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("sz".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("79")
+
+        assertEquals(listOf("sz"), encodings)
+    }
 }
