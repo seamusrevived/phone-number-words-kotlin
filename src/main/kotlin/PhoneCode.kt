@@ -25,19 +25,27 @@ class PhoneCode {
         runningSequence: MutableWordSequence = mutableListOf()
     ): List<WordSequence> {
 
-        val foundSequences = mutableListOf<WordSequence>()
+        if (phoneNumber.isEmpty()) {
+            return listOf(runningSequence)
+        }
 
-
-        for (i in 1..phoneNumber.length) {
+        val foundSequences = (1..phoneNumber.length).map { i ->
             val firstNumberSequence = phoneNumber.subSequence(0, i)
             val match = dictionaryEncodings[firstNumberSequence]
             if (match != null) {
-                runningSequence.add(match)
-                buildWordSequences(phoneNumber.subSequence(i, phoneNumber.length), runningSequence)
-                foundSequences.add(runningSequence)
+                val nextRunningSequence = runningSequence.toMutableList().apply {
+                    add(match)
+                }
+                buildWordSequences(
+                    phoneNumber.subSequence(i, phoneNumber.length),
+                    nextRunningSequence
+                )
+            } else {
+                emptyList()
             }
         }
-
+            .flatten()
+            .filter { sequence: WordSequence -> sequence.isNotEmpty() }
         return foundSequences
     }
 
