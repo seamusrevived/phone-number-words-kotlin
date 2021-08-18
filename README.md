@@ -5,6 +5,17 @@ Library to find dial-pad words in phone numbers in the spirit of Prechelt's "pho
 [*An empirical comparison of C, C++, Java, Perl, Python, Rexx, and Tcl for a search/string-processing program*
 ](http://page.mi.fu-berlin.de/prechelt/Biblio/jccpprtTR.pdf)
 
+## Use
+
+`PhoneCode::setDictionary(File)` takes an `InputStream` of newline separated words as possible words encoded in phone numbers
+
+`PhoneCode::findEncodings(String)` takes a `String` and returns a list of space-separated encoded word sequences
+
+### Example
+
+A dictionary file containing lines `hello` and `world` with a phone number
+`(435) 569-6753` will return a list with `"hello world"`
+
 ## Description
 
 Given the following phone dial-pad convention
