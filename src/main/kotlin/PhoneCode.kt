@@ -28,7 +28,7 @@ class PhoneCode {
             return listOf(runningSequence)
         }
 
-        return (1..phoneNumber.length).map { i ->
+        return (1..phoneNumber.length).mapNotNull { i ->
             findSequencesWithStartingWordLength(i, phoneNumber, runningSequence)
         }.flatten()
     }
@@ -37,18 +37,21 @@ class PhoneCode {
         i: Int,
         phoneNumber: CharSequence,
         runningSequence: MutableWordSequence
-    ): List<WordSequence> {
+    ): List<WordSequence>? {
+
         val firstNumberSequence = phoneNumber.subSequence(0, i)
+        if (dictionaryEncodings.containsKey(firstNumberSequence)) {
+            val nextWordsInSequence = dictionaryEncodings[firstNumberSequence]!!
+            val appendedSequence = runningSequence.toMutableList().apply {
+                add(nextWordsInSequence)
+            }
 
-
-        val nextRunningSequence = runningSequence.toMutableList().apply {
-            dictionaryEncodings[firstNumberSequence]?.let { add(it) }
+            return buildWordSequences(
+                phoneNumber.subSequence(i, phoneNumber.length),
+                appendedSequence
+            )
         }
-
-        return buildWordSequences(
-            phoneNumber.subSequence(i, phoneNumber.length),
-            nextRunningSequence
-        )
+        return null
     }
 
     private fun findAllCombinationsForSequence(

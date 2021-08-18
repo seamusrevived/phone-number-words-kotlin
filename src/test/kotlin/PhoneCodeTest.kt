@@ -154,4 +154,18 @@ class PhoneCodeTest {
 
         assertEquals(listOf("a a", "ab"), encodings)
     }
+
+
+    @Test
+    fun `Phone number 23 with with dictionary of d returns empty word list`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("d".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("23")
+
+        assertEquals(emptyList<String>(), encodings)
+    }
 }
