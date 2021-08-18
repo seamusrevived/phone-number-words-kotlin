@@ -1,15 +1,11 @@
 import java.io.InputStream
 
 class PhoneCode {
-    private lateinit var dictionary: List<String>
+    private var dictionary: List<String> = emptyList()
 
     fun findEncodings(phoneNumber: String): List<String> {
-        return if (phoneNumber.isNotEmpty()) {
-            dictionary.filter {
-                listOf("a", "b").contains(it)
-            }
-        } else {
-            emptyList()
+        return dictionary.filter {
+            listOf("a", "b").contains(it)
         }
     }
 
