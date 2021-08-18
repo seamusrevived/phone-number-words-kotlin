@@ -4,12 +4,14 @@ class PhoneCode {
     private var dictionary: List<String> = emptyList()
 
     fun findEncodings(phoneNumber: String): List<String> {
-        return if (phoneNumber == "2") {
-            dictionary.filter {
-                listOf("a", "b").contains(it)
-            }
-        } else dictionary.filter {
-            listOf("d").contains(it)
+        val numberMapping = hashMapOf(
+            Pair("2", listOf("a", "b")),
+            Pair("3", listOf("d")),
+            Pair("4", listOf("g")),
+        )
+
+        return dictionary.filter {
+            numberMapping[phoneNumber]!!.contains(it)
         }
     }
 
