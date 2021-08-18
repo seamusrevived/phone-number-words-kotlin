@@ -12,12 +12,15 @@ class PhoneCode {
     fun findEncodings(phoneNumber: String): List<String> {
         val foundSequences = buildWordSequences(phoneNumber)
 
-        return foundSequences.map { sequence ->
-            findAllCombinationsForSequence(sequence)
-                .map { words ->
-                    words.joinToString(" ")
-                }.filter(String::isNotBlank)
+        return foundSequences.map {
+            generateOutputStringsForSequence(it)
         }.flatten()
+    }
+
+    private fun generateOutputStringsForSequence(sequence: WordSequence): List<String> {
+        return findAllFlatCombinationsForSequence(sequence).map { flatWords ->
+            flatWords.joinToString(" ")
+        }.filter(String::isNotBlank)
     }
 
     private fun buildWordSequences(
@@ -38,60 +41,67 @@ class PhoneCode {
         phoneNumber: CharSequence,
         runningSequence: MutableWordSequence
     ): List<WordSequence>? {
-
         val firstNumberSequence = phoneNumber.subSequence(0, i)
-        if (dictionaryEncodings.containsKey(firstNumberSequence)) {
-            val nextWordsInSequence = dictionaryEncodings[firstNumberSequence]!!
-            val appendedSequence = runningSequence.toMutableList().apply {
-                add(nextWordsInSequence)
-            }
-
-            return buildWordSequences(
-                phoneNumber.subSequence(i, phoneNumber.length),
-                appendedSequence
-            )
+        if (!dictionaryEncodings.containsKey(firstNumberSequence)) {
+            return null
         }
-        return null
+
+        val nextWordsInSequence = dictionaryEncodings[firstNumberSequence]!!
+        val nextRunningSequence = appendWordsToWordSequence(runningSequence, nextWordsInSequence)
+
+        return buildWordSequences(
+                phoneNumber.subSequence(i, phoneNumber.length),
+                nextRunningSequence
+            )
     }
 
-    private fun findAllCombinationsForSequence(
+    private fun appendWordsToWordSequence(
+        runningSequence: MutableWordSequence,
+        nextWordsInSequence: MutableList<String>
+    ): MutableList<Words> {
+        return runningSequence.toMutableList().apply {
+            add(nextWordsInSequence)
+        }
+    }
+
+    private fun findAllFlatCombinationsForSequence(
         wordsSequence: WordSequence
     ): List<FlatSequence> {
         var sequenceCombinations = listOf(emptyFlatSequence())
 
         wordsSequence.forEach { wordsForPosition ->
-            val newCombinations = generateAllCombinationsWithWords(wordsForPosition, sequenceCombinations)
+            val newCombinations = generateAllFlatCombinationsWithWords(wordsForPosition, sequenceCombinations)
             sequenceCombinations = newCombinations
         }
         return sequenceCombinations
     }
 
-    private fun generateAllCombinationsWithWords(
+    private fun generateAllFlatCombinationsWithWords(
         wordsForPosition: Words,
         existingCombinations: List<FlatSequence>
     ): List<FlatSequence> {
         val newCombinations = mutableListOf<FlatSequence>()
         wordsForPosition.forEach { word ->
-            appendWordToCombinations(word, existingCombinations, newCombinations)
+            appendWordToEachFlatSequence(word, existingCombinations, newCombinations)
         }
         return newCombinations
     }
 
-    private fun appendWordToCombinations(
+    private fun appendWordToEachFlatSequence(
         word: String,
-        combinations: List<FlatSequence>,
-        newCombinations: MutableList<FlatSequence>
+        flatSequences: List<FlatSequence>,
+        appendedFlatSequences: MutableList<FlatSequence>
     ) {
-        combinations.mapTo(newCombinations) { combination ->
-            appendWordToCombination(combination, word)
+        flatSequences.mapTo(appendedFlatSequences) { combination ->
+            appendWordToFlatSequence(combination, word)
         }
     }
 
-    private fun appendWordToCombination(
-        existingCombination: FlatSequence,
+    private fun appendWordToFlatSequence(
+        flatSequence: FlatSequence,
         word: String
     ): List<String> {
-        return existingCombination.toMutableList().apply {
+        return flatSequence.toMutableList().apply {
             add(word)
         }
     }
