@@ -17,36 +17,38 @@ class PhoneCode {
                 .map { words ->
                     words.joinToString(" ")
                 }.filter(String::isNotBlank)
-        }.flatten().distinct()
+        }.flatten()
     }
 
     private fun buildWordSequences(
         phoneNumber: CharSequence,
         runningSequence: MutableWordSequence = mutableListOf()
     ): List<WordSequence> {
-
         if (phoneNumber.isEmpty()) {
             return listOf(runningSequence)
         }
 
-        val foundSequences = (1..phoneNumber.length).map { i ->
-            val firstNumberSequence = phoneNumber.subSequence(0, i)
-            val match = dictionaryEncodings[firstNumberSequence]
-            if (match != null) {
-                val nextRunningSequence = runningSequence.toMutableList().apply {
-                    add(match)
-                }
-                buildWordSequences(
-                    phoneNumber.subSequence(i, phoneNumber.length),
-                    nextRunningSequence
-                )
-            } else {
-                emptyList()
-            }
+        return (1..phoneNumber.length).map { i ->
+            findSequencesWithStartingWordLength(i, phoneNumber, runningSequence)
+        }.flatten()
+    }
+
+    private fun findSequencesWithStartingWordLength(
+        i: Int,
+        phoneNumber: CharSequence,
+        runningSequence: MutableWordSequence
+    ): List<WordSequence> {
+        val firstNumberSequence = phoneNumber.subSequence(0, i)
+
+
+        val nextRunningSequence = runningSequence.toMutableList().apply {
+            dictionaryEncodings[firstNumberSequence]?.let { add(it) }
         }
-            .flatten()
-            .filter { sequence: WordSequence -> sequence.isNotEmpty() }
-        return foundSequences
+
+        return buildWordSequences(
+            phoneNumber.subSequence(i, phoneNumber.length),
+            nextRunningSequence
+        )
     }
 
     private fun findAllCombinationsForSequence(
