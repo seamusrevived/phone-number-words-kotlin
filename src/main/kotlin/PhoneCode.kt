@@ -10,7 +10,7 @@ class PhoneCode {
             Pair('4', listOf("g")),
         )
 
-        val wordsSequence: List<List<String>> = phoneNumber
+        val wordsSequence = phoneNumber
             .toCharArray()
             .map { char ->
                 dictionary.filter {
@@ -18,55 +18,52 @@ class PhoneCode {
                 }
             }
 
-        val sequenceCombinations = findAllSequenceCombinations(wordsSequence)
-
-        if(sequenceCombinations.isEmpty()) return listOf()
-        if(sequenceCombinations.first().isEmpty()) return listOf()
-
-        return sequenceCombinations.map {
-            it.joinToString(" ")
-        }
+        return findAllSequenceCombinations(wordsSequence)
+            .map {
+                it.joinToString(" ")
+            }.filter(String::isNotBlank)
     }
 
-    private fun findAllSequenceCombinations(wordsSequence: List<List<String>>): List<List<String>> {
-        var sequenceCombinations = listOf<List<String>>(emptyList())
+    private fun findAllSequenceCombinations(
+        wordsSequence: List<List<String>>
+    ): List<List<String>> {
+        var sequenceCombinations = listOf(emptyList<String>())
 
-        for (wordsForPosition in wordsSequence) {
-            val newCombinations = addWordsToCombinations(wordsForPosition, sequenceCombinations)
+        wordsSequence.forEach { wordsForPosition ->
+            val newCombinations = appendWordsToCombinations(wordsForPosition, sequenceCombinations)
             sequenceCombinations = newCombinations
         }
         return sequenceCombinations
     }
 
-    private fun addWordsToCombinations(
+    private fun appendWordsToCombinations(
         wordsForPosition: List<String>,
-        sequenceCombinations: List<List<String>>
+        existingCombinations: List<List<String>>
     ): List<List<String>> {
         val newCombinations = mutableListOf<List<String>>()
-        for (word in wordsForPosition) {
-            addWordToCombinations(sequenceCombinations, word, newCombinations)
+        wordsForPosition.forEach { word ->
+            addWordToCombinations(word, existingCombinations, newCombinations)
         }
-        return newCombinations.toList()
+        return newCombinations
     }
 
     private fun addWordToCombinations(
-        sequenceCombinations: List<List<String>>,
         word: String,
+        combinations: List<List<String>>,
         newCombinations: MutableList<List<String>>
     ) {
-        for (existingCombination in sequenceCombinations) {
-            val newCombination = buildNewCombinationForWord(existingCombination, word)
-            newCombinations.add(newCombination)
+        combinations.mapTo(newCombinations) { combination ->
+            buildNewCombinationWithWord(combination, word)
         }
     }
 
-    private fun buildNewCombinationForWord(
+    private fun buildNewCombinationWithWord(
         existingCombination: List<String>,
         word: String
     ): List<String> {
-        val newCombination = existingCombination.toMutableList()
-        newCombination.add(word)
-        return newCombination
+        return existingCombination.toMutableList().apply {
+            add(word)
+        }
     }
 
     fun setDictionary(inputStream: InputStream) {
