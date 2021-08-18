@@ -13,7 +13,7 @@ class PhoneCode {
 
     fun setDictionary(inputStream: InputStream) {
         getDictionaryFileLines(inputStream).forEach { word ->
-            addNumberEncodingAndWordToDictionaryEncodings(word)
+            addNumberEncodingAndWordToDictionaryEncodings(word.trimEnd())
         }
     }
 

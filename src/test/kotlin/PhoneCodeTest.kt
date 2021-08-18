@@ -259,4 +259,17 @@ class PhoneCodeTest {
 
         assertEquals(listOf("hello world"), encodings)
     }
+
+    @Test
+    fun `Phone number 2 with with dictionary of a slash r returns a`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("a\r\n".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("2")
+
+        assertEquals(listOf("a"), encodings)
+    }
 }
