@@ -50,4 +50,17 @@ class PhoneCodeTest {
 
         assertEquals(listOf("b"), encodings)
     }
+
+    @Test
+    fun `Phone number 2 with with dictionary of a and b returns word list of a and b`() {
+        val phoneCode = PhoneCode()
+
+        val inputStream = ByteArrayInputStream("a\nb".toByteArray())
+
+        phoneCode.setDictionary(inputStream)
+
+        val encodings = phoneCode.findEncodings("2")
+
+        assertEquals(listOf("a", "b"), encodings)
+    }
 }
